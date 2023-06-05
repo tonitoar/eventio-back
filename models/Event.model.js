@@ -12,9 +12,9 @@ const EventSchema = new Schema ({
   address: String,
   description: String,
   numattendees: Number,
-  maxcapacity: Number,
+  maxCapacity: Number,
   photos: [String],
-  Buyers: [{
+  buyers: [{
     type: Schema.Types.ObjectId,
     ref:"User"
     }],

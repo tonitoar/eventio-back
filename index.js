@@ -1,22 +1,24 @@
 const express = require("express");
+const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
 /* const upload = require('./config/cloudinary.config'); */
 const {cloudinary} = require("./config/cloudinary.config");
 
 const User = require("./models/User.model.js");
+const Event = require("./models/Event.model.js");
 
 require("dotenv").config();
-const app = express();
+app.use(cookieParser());
+
 
 const bcryptSalt = bcrypt.genSaltSync(10);
 
 // app.use(express.json());
 app.use(express.json({limit: "50mb"}));
-app.use(cookieParser());
 app.use(express.urlencoded({limit: "50mb", extended: true}));
 
 app.use(
@@ -78,7 +80,7 @@ app.post("/login", async (req, res, next) => {
             if (error) {
               throw error;
             }
-            res.cookie("token", token).json(userDoc);
+            res.json({token, user: userDoc});
           }
         );
       } else {
@@ -94,10 +96,10 @@ app.post("/login", async (req, res, next) => {
 //TODO PROFILE
 
 app.get("/profile", (req, res, next) => {
-  const { token } = req.cookies;
+  const token = req.headers.authorization;
   if (token) {
     jwt.verify(
-      token,
+      token.replace("Bearer ", ""),
       process.env.TOKEN_SECRET,
       { algorithm: "HS256", expiresIn: "24h" },
       async (error, userData) => {
@@ -114,8 +116,8 @@ app.get("/profile", (req, res, next) => {
 
 //TODO LOGOUT
 
-app.post("/logout", (req, res, next) => { //! resetear cookie usuario
-  res.cookie("token", "").json(true); //! si surts, no pots fer /account, has de tornar a logejar-te // en el NETWORK ha de surtir Preview TRUE si funciona
+app.post("/logout", (req, res, next) => { 
+  res.json(true); //! si surts, no pots fer /account, has de tornar a logejar-te // en el NETWORK ha de surtir Preview TRUE si funciona
 })
 
 
@@ -134,7 +136,6 @@ app.post('/api/upload', async (req, res, next) => {
       });
       uploadResults.push(uploadedResponse.url);
     }
-
     //console.log(uploadResults);
     res.json({uploadResults});
   } catch (error) {
@@ -142,6 +143,46 @@ app.post('/api/upload', async (req, res, next) => {
     res.status(500).json({ err: "WRONG" });
   }
 });
+
+
+
+//TODO PILLAR DATA DEL CREATE EVENT
+
+
+
+
+app.post("/events", async (req, res, next) => {
+  const { title, date, hour, address, description, maxCapacity } = req.body;
+  const uploadResults = req.body.uploadResults;
+  try {
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader) {
+      // Handle the case when the token is missing or invalid
+      return res.status(401).json({ error: "Missing or invalid token" });
+    }
+
+    const token = authorizationHeader.replace("Bearer ", "");
+    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userId = decodedToken.id;
+
+    const eventDoc = await Event.create({
+      owner: userId,
+      title,
+      date,
+      hour,
+      address,
+      description,
+      maxCapacity,
+      photos: uploadResults,
+    });
+    res.json(eventDoc);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
 
 
 //TODO llista per public_id que estan dintre de la carpeta
