@@ -132,11 +132,11 @@ app.post('/api/upload', async (req, res, next) => {
       const uploadedResponse = await cloudinary.uploader.upload(imageData, {
         upload_preset: "ml_default"
       });
-      uploadResults.push(uploadedResponse);
+      uploadResults.push(uploadedResponse.url);
     }
 
-    console.log(uploadResults);
-    res.json({ msg: "YEEESSS" });
+    //console.log(uploadResults);
+    res.json({uploadResults});
   } catch (error) {
     console.error(error);
     res.status(500).json({ err: "WRONG" });
