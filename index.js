@@ -121,20 +121,6 @@ app.post("/logout", (req, res, next) => { //! resetear cookie usuario
 
 //TODO CLOUDINARY
 
-/* app.post('/api/upload', async (req, res, next) => {
-try {
-  const fileStr = req.body.data;
-  const uploadedResponse = await cloudinary.uploader.upload(fileStr, {
-    upload_preset: "ml_default"
-  })
-  console.log(uploadedResponse);
-  res.json({msg:"YEEESSS"})
-  
-} catch (error) {
-  console.error(error);
-  res.status(500).json({err: "WRONG"})
-}
-}); */
 
 app.post('/api/upload', async (req, res, next) => {
   try {
