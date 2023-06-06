@@ -153,7 +153,8 @@ app.post('/api/upload', async (req, res, next) => {
 
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
-  const uploadResults = req.body.uploadResults;
+  const {uploadResults} = req.body;
+  console.log("RESULTADOS", {uploadResults})
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
