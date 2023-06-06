@@ -10,7 +10,7 @@ const {cloudinary} = require("./config/cloudinary.config");
 
 const User = require("./models/User.model.js");
 const Event = require("./models/Event.model.js");
-const ImageUploads = require('./models/ImagesUploads.model.js');
+const Images = require('./models/Images.model.js');
 
 require("dotenv").config();
 app.use(cookieParser());
@@ -128,7 +128,7 @@ app.post("/logout", (req, res, next) => {
 app.post('/api/upload', async (req, res, next) => {
   try {
     const imageArray = req.body.data;
-    console.log("ARRAY",imageArray.length)
+    //console.log("ARRAY",imageArray.length)
     const uploadResults = [];
     //console.log("IIMAGENES", imageArray)
 
@@ -142,20 +142,19 @@ app.post('/api/upload', async (req, res, next) => {
     }
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
-      // Handle the case when the token is missing or invalid
       return res.status(401).json({ error: "Missing or invalid token" });
     }
-    // Retrieve the user ID from the token
+
     const token = authorizationHeader.replace("Bearer ", "");
     const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
     const userId = decodedToken.id;
 
-    // Store the uploadResults in the ImageUploads model
-    const imageUploads = new ImageUploads({
+ 
+    const images = new Images({
       user: userId,
       imageUrls: uploadResults,
     });
-    await imageUploads.save();
+    await images.save();
 
     //console.log(uploadResults);
     res.json({uploadResults});
@@ -174,12 +173,11 @@ app.post('/api/upload', async (req, res, next) => {
 
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
-  const {uploadResults} = req.body;
   //console.log("RESULTADOS", {uploadResults})
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
-      // Handle the case when the token is missing or invalid
+
       return res.status(401).json({ error: "Missing or invalid token" });
     }
 
@@ -187,6 +185,12 @@ app.post("/events", async (req, res, next) => {
     const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
     const userId = decodedToken.id;
 
+    // Fetch the images associated with the user from the Images model
+    const images = await Images.find({ user: userId });
+    console.log("XXXXXXXXXXXXXX",images)
+      // Extract the image URLs from the fetched images
+      const photoUrls = images.map((image) => image.imageUrls);
+    console.log("YYYYYYYYYYYY",photoUrls[0])
     const eventDoc = await Event.create({
       owner: userId,
       title,
@@ -195,7 +199,7 @@ app.post("/events", async (req, res, next) => {
       address,
       description,
       maxCapacity,
-      photos: uploadResults,
+      photos: photoUrls[0],
     });
     res.json(eventDoc);
   } catch (error) {
