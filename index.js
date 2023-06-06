@@ -10,6 +10,7 @@ const {cloudinary} = require("./config/cloudinary.config");
 
 const User = require("./models/User.model.js");
 const Event = require("./models/Event.model.js");
+const ImageUploads = require('./models/ImagesUploads.model.js');
 
 require("dotenv").config();
 app.use(cookieParser());
@@ -127,15 +128,35 @@ app.post("/logout", (req, res, next) => {
 app.post('/api/upload', async (req, res, next) => {
   try {
     const imageArray = req.body.data;
+    console.log("ARRAY",imageArray.length)
     const uploadResults = [];
+    //console.log("IIMAGENES", imageArray)
 
     for (let i = 0; i < imageArray.length; i++) {
       const imageData = imageArray[i];
+      //console.log("IMAGENDATA",imageData)
       const uploadedResponse = await cloudinary.uploader.upload(imageData, {
         upload_preset: "ml_default"
       });
       uploadResults.push(uploadedResponse.url);
     }
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader) {
+      // Handle the case when the token is missing or invalid
+      return res.status(401).json({ error: "Missing or invalid token" });
+    }
+    // Retrieve the user ID from the token
+    const token = authorizationHeader.replace("Bearer ", "");
+    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userId = decodedToken.id;
+
+    // Store the uploadResults in the ImageUploads model
+    const imageUploads = new ImageUploads({
+      user: userId,
+      imageUrls: uploadResults,
+    });
+    await imageUploads.save();
+
     //console.log(uploadResults);
     res.json({uploadResults});
   } catch (error) {
@@ -154,7 +175,7 @@ app.post('/api/upload', async (req, res, next) => {
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
   const {uploadResults} = req.body;
-  console.log("RESULTADOS", {uploadResults})
+  //console.log("RESULTADOS", {uploadResults})
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
