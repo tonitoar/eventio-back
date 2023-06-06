@@ -1,0 +1,47 @@
+[33mcommit d7e877e5e270715c19c43a930c33f9d083739e34[m[33m ([m[1;36mHEAD -> [m[1;32mtoni[m[33m, [m[1;31morigin/toni[m[33m, [m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Tue Jun 6 21:05:59 2023 +0200
+
+    podem crear events. Arreglar BUGS
+
+[33mcommit 3533432dfdbf4ac491cb82980f3b85580b7b88db[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Tue Jun 6 16:08:46 2023 +0200
+
+    podem crear events
+
+[33mcommit 2b7cd52a41ac71bf1708abdb2a17a08b3127b1f1[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Tue Jun 6 15:18:51 2023 +0200
+
+    tenim db imatges
+
+[33mcommit bf8129a184f676a4494c7b2f893b38896a00187e[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Tue Jun 6 11:21:03 2023 +0200
+
+    trying to catch url images
+
+[33mcommit acaef2fb6d0139a50f933f2ab08936af8230d1c6[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Mon Jun 5 23:32:03 2023 +0200
+
+    funciona la recepcio de dades create/event
+
+[33mcommit 62cbef4ec22dba052b9ecb3ad059e3ac08a67d05[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Mon Jun 5 19:19:33 2023 +0200
+
+    reollint data event create
+
+[33mcommit 51cf7e407c5274295a4a55cc1788d429d9df4925[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Mon Jun 5 16:15:24 2023 +0200
+
+    fotos OAKY back
+
+[33mcommit 3439122222fb0a1fa405e18c5738822af217b145[m[33m ([m[1;31morigin/xavi[m[33m, [m[1;31morigin/pedro[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mxavi[m[33m, [m[1;32mpedro[m[33m, [m[1;32mmain[m[33m)[m
+Author: Toni Torredemer <toni.torredemer.argiles@gmail.com>
+Date:   Mon Jun 5 15:45:37 2023 +0200
+
+    server

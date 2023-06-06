@@ -51,9 +51,7 @@ mongoose
 app.get("/test", (req, res, next) => {
   res.json("HOLA");
 });
-app.get("/events", (req, res, next) => {
-  res.json("HOLA");
-});
+
 
 //TODO REGISTER
 
@@ -203,7 +201,7 @@ app.post("/events", async (req, res, next) => {
     const userId = decodedToken.id;
     console.log("USERID",userId)
     // Fetch the images associated with the user from the Images model
-    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] });
+    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean().exec();
     //const images = await Images.find({ user: userId });
    console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
