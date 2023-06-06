@@ -30,7 +30,20 @@ app.use(
 );
 
 // ! console.log(process.env.MONGO_URL) si funciona dotenv
-mongoose.connect(process.env.MONGO_URL);
+// mongoose.connect(process.env.MONGO_URL);
+
+mongoose
+  .connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
+  });
+
 
 
 
@@ -38,7 +51,9 @@ mongoose.connect(process.env.MONGO_URL);
 app.get("/test", (req, res, next) => {
   res.json("HOLA");
 });
-
+app.get("/events", (req, res, next) => {
+  res.json("HOLA");
+});
 
 //TODO REGISTER
 
@@ -128,6 +143,7 @@ app.post("/logout", (req, res, next) => {
 app.post('/api/upload', async (req, res, next) => {
   try {
     const imageArray = req.body.data;
+    const title = req.body.title
     //console.log("ARRAY",imageArray.length)
     const uploadResults = [];
     //console.log("IIMAGENES", imageArray)
@@ -153,11 +169,12 @@ app.post('/api/upload', async (req, res, next) => {
     const images = new Images({
       user: userId,
       imageUrls: uploadResults,
+      title: title
     });
     await images.save();
 
     //console.log(uploadResults);
-    res.json({uploadResults});
+    res.json(title);
   } catch (error) {
     console.error(error);
     res.status(500).json({ err: "WRONG" });
@@ -173,7 +190,7 @@ app.post('/api/upload', async (req, res, next) => {
 
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
-  //console.log("RESULTADOS", {uploadResults})
+  console.log("TITULO",title);
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
@@ -184,12 +201,13 @@ app.post("/events", async (req, res, next) => {
     const token = authorizationHeader.replace("Bearer ", "");
     const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
     const userId = decodedToken.id;
-
+    console.log("USERID",userId)
     // Fetch the images associated with the user from the Images model
-    const images = await Images.find({ user: userId });
-    console.log("XXXXXXXXXXXXXX",images)
+    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] });
+    //const images = await Images.find({ user: userId });
+   console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
-      const photoUrls = images.map((image) => image.imageUrls);
+      const photoUrls = images.imageUrls.map((image) => image);
     console.log("YYYYYYYYYYYY",photoUrls[0])
     const eventDoc = await Event.create({
       owner: userId,
@@ -199,7 +217,7 @@ app.post("/events", async (req, res, next) => {
       address,
       description,
       maxCapacity,
-      photos: photoUrls[0],
+      photos: photoUrls,
     });
     res.json(eventDoc);
   } catch (error) {
