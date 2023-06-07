@@ -134,6 +134,8 @@ app.post("/logout", (req, res, next) => {
   res.json(true); //! si surts, no pots fer /account, has de tornar a logejar-te // en el NETWORK ha de surtir Preview TRUE si funciona
 })
 
+//? We can delete this route as it's not needed in back.
+
 
 //TODO CLOUDINARY
 
@@ -158,6 +160,7 @@ app.post('/api/upload', async (req, res, next) => {
     if (!authorizationHeader) {
       return res.status(401).json({ error: "Missing or invalid token" });
     }
+//? toni moves midleware upfront
 
     const token = authorizationHeader.replace("Bearer ", "");
     const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -177,14 +180,12 @@ app.post('/api/upload', async (req, res, next) => {
     console.error(error);
     res.status(500).json({ err: "WRONG" });
   }
+  //? maybe delete title when final v. is done
 });
 
 
 
 //TODO PILLAR DATA DEL CREATE EVENT
-
-
-
 
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
@@ -201,7 +202,7 @@ app.post("/events", async (req, res, next) => {
     const userId = decodedToken.id;
     console.log("USERID",userId)
     // Fetch the images associated with the user from the Images model
-    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean().exec();
+    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean();//? .exec deleted
     //const images = await Images.find({ user: userId });
    console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
@@ -223,6 +224,17 @@ app.post("/events", async (req, res, next) => {
   }
 });
 
+//!Xavi-Pedro part route get
+
+app.get("/events", async (req, res, next) => {
+  try {
+    // Fetch events associated with the user from the Events model
+    const events = await Event.find({});//? We delete the need for authorization since route is public, so we delete it.
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 
 
