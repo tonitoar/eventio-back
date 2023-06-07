@@ -94,7 +94,8 @@ app.post("/login", async (req, res, next) => {
             if (error) {
               throw error;
             }
-            res.json({token, user: userDoc});
+            res.json({token, user: userDoc}); //petar userDoc
+            /* res.json({token}); */
           }
         );
       } else {
@@ -141,6 +142,14 @@ app.post("/logout", (req, res, next) => {
 
 
 app.post('/api/upload', async (req, res, next) => {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id; 
   try {
     const imageArray = req.body.data;
     const title = req.body.title
@@ -156,16 +165,7 @@ app.post('/api/upload', async (req, res, next) => {
       });
       uploadResults.push(uploadedResponse.url);
     }
-    const authorizationHeader = req.headers.authorization;
-    if (!authorizationHeader) {
-      return res.status(401).json({ error: "Missing or invalid token" });
-    }
-//? toni moves midleware upfront
-
-    const token = authorizationHeader.replace("Bearer ", "");
-    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-    const userId = decodedToken.id;
-
+    console.log("RESULTADOS",uploadResults)
  
     const images = new Images({
       user: userId,
@@ -189,18 +189,18 @@ app.post('/api/upload', async (req, res, next) => {
 
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
   console.log("TITULO",title);
+  console.log("USERID",userId)
   try {
-    const authorizationHeader = req.headers.authorization;
-    if (!authorizationHeader) {
-
-      return res.status(401).json({ error: "Missing or invalid token" });
-    }
-
-    const token = authorizationHeader.replace("Bearer ", "");
-    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-    const userId = decodedToken.id;
-    console.log("USERID",userId)
     // Fetch the images associated with the user from the Images model
     const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean();//? .exec deleted
     //const images = await Images.find({ user: userId });
@@ -235,6 +235,34 @@ app.get("/events", async (req, res, next) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+
+
+//TODO DISPLAY ADMIN EVENTS
+
+
+app.get("/events", async (req, res) => {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+
+  try {
+    const events = await Event.find({ owner: userId });
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
+
 
 
 
