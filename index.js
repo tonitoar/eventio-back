@@ -231,27 +231,35 @@ app.post("/events", async (req, res, next) => {
 //TODO DISPLAY ADMIN EVENTS
 
 
-app.get("/events", async (req, res) => {
-  const authorizationHeader = req.headers.authorization;
-  if (!authorizationHeader) {
-    return res.status(401).json({ error: "Missing or invalid token" });
-  }
-
-  const token = authorizationHeader.replace("Bearer ", "");
-  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-  const userId = decodedToken.id;
+app.delete("/events/:id/images", async (req, res) => {
+  const { id } = req.params;
+  const { imageIndexes } = req.body;
 
   try {
-    const events = await Event.find({ owner: userId });
-    res.json(events);
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Remove the selected images from the event's photos array
+    imageIndexes.forEach((index) => {
+      event.photos.splice(index, 1);
+    });
+
+    // Save the updated event
+    await event.save();
+
+    res.json({ message: "Event images deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
-
-
-
+// Start the server
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
 
 
 
