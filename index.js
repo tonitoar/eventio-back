@@ -225,13 +225,12 @@ app.post("/events", async (req, res, next) => {
 
 
     return res.status(401).json({ error: "Missing or invalid token" });
-  }
+
 
   const token = authorizationHeader.replace("Bearer ", "");
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
   const userId = decodedToken.id;
   res.json( await Event.find({owner:userId}));
-})
 
 
 //TODO event/:id
