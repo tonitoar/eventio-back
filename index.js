@@ -94,8 +94,7 @@ app.post("/login", async (req, res, next) => {
             if (error) {
               throw error;
             }
-            res.json({token, user: userDoc}); //petar userDoc
-            /* res.json({token}); */
+            res.json({token, user: userDoc});
           }
         );
       } else {
@@ -147,7 +146,7 @@ app.post('/api/upload', async (req, res, next) => {
 
   const token = authorizationHeader.replace("Bearer ", "");
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-  const userId = decodedToken.id; 
+  const userId = decodedToken.id;
   try {
     const imageArray = req.body.data;
     const title = req.body.title
@@ -163,7 +162,7 @@ app.post('/api/upload', async (req, res, next) => {
       });
       uploadResults.push(uploadedResponse.url);
     }
-    console.log("RESULTADOS",uploadResults)
+
  
     const images = new Images({
       user: userId,
@@ -184,11 +183,9 @@ app.post('/api/upload', async (req, res, next) => {
 
 //TODO PILLAR DATA DEL CREATE EVENT
 
-
-
-
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
+  console.log("TITULO",title);
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
 
@@ -198,7 +195,6 @@ app.post("/events", async (req, res, next) => {
   const token = authorizationHeader.replace("Bearer ", "");
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
   const userId = decodedToken.id;
-  console.log("TITULO",title);
   console.log("USERID",userId)
   try {
     // Fetch the images associated with the user from the Images model
@@ -224,42 +220,88 @@ app.post("/events", async (req, res, next) => {
   }
 });
 
+app.get("/admin/events", async (req, res) => {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+  res.json( await Event.find({owner:userId}));
+})
+
+
+//TODO event/:id
+
+app.get("/events/:id", async (req, res) => {
+  const{id} = req.params;
+  res.json(await Event.findById(id))
+
+})
+
+//*update events (edit)
+
+app.put("/events/:id", async (req, res) => {
+  const { id, title, date, hour, address, description, maxCapacity } = req.body;
+  //console.log("EVENT",id)
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+
+
+  const eventDoc = await Event.findById(id);
+  console.log("USERID", userId)
+  console.log("OWNER",eventDoc.owner.toString())
+  if(userId === eventDoc.owner.toString()) {
+    eventDoc.set({
+      title,
+      date,
+      hour,
+      address,
+      description,
+      maxCapacity,
+    })
+    eventDoc.save();
+    res.json(eventDoc)
+  }
+
+
+})
 
 
 
 
-//TODO DISPLAY ADMIN EVENTS
 
 
-app.delete("/events/:id/images", async (req, res) => {
-  const { id } = req.params;
-  const { imageIndexes } = req.body;
-
+app.get("/events", async (req, res, next) => {
   try {
-    const event = await Event.findById(id);
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    // Remove the selected images from the event's photos array
-    imageIndexes.forEach((index) => {
-      event.photos.splice(index, 1);
-    });
-
-    // Save the updated event
-    await event.save();
-
-    res.json({ message: "Event images deleted successfully" });
+    // Fetch events associated with the user from the Events model
+    const events = await Event.find({});//? We delete the need for authorization since route is public, so we delete it.
+    res.json(events);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Start the server
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
