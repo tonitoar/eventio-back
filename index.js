@@ -203,7 +203,7 @@ app.post("/events", async (req, res, next) => {
    //console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
       const photoUrls = images.imageUrls.map((image) => image);
-    console.log("YYYYYYYYYYYY",photoUrls[0])
+    //console.log("YYYYYYYYYYYY",photoUrls[0])
     const eventDoc = await Event.create({
       owner: userId,
       title,
