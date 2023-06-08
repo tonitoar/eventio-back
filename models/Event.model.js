@@ -14,6 +14,7 @@ const EventSchema = new Schema ({
   numattendees: Number,
   maxCapacity: Number,
   photos: [String],
+  price: Number,
   buyers: [{
     type: Schema.Types.ObjectId,
     ref:"User"
