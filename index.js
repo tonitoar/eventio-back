@@ -220,7 +220,8 @@ app.post("/events", async (req, res, next) => {
   }
 });
 
-app.get("/admin/events", async (req, res) => {
+//!PRIVAT
+app.get("/admin/event", async (req, res) => {
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
 
@@ -236,15 +237,34 @@ app.get("/admin/events", async (req, res) => {
 
 //TODO event/:id
 
-app.get("/events/:id", async (req, res) => {
+app.get("/admin/event/:id", async (req, res) => {
   const{id} = req.params;
-  res.json(await Event.findById(id))
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
 
-})
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+  //console.log("params", req.params)
+
+  try {
+    const event = await Event.findById(id);
+    if (event.owner === userId) {
+      res.json(event);
+    } else {
+      res.status(401).json({ error: "Unauthorized access" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Error retrieving event" });
+  }
+});
 
 //*update events (edit)
 
-app.put("/events/:id", async (req, res) => {
+app.put("/event/:id", async (req, res) => {
   const { id, title, date, hour, address, description, maxCapacity } = req.body;
   //console.log("EVENT",id)
   const authorizationHeader = req.headers.authorization;
@@ -278,7 +298,7 @@ app.put("/events/:id", async (req, res) => {
 
 
 
-
+//!PUBLIC
 
 app.get("/events", async (req, res, next) => {
   try {
@@ -290,6 +310,11 @@ app.get("/events", async (req, res, next) => {
   }
 });
 
+app.get("/event/:id", async (req, res) => {
+  const{id} = req.params;
+  res.json(await Event.findById(id))
+
+})
 
 
 
