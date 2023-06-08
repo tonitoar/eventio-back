@@ -185,28 +185,33 @@ app.post('/api/upload', async (req, res, next) => {
 
 
 //TODO PILLAR DATA DEL CREATE EVENT
-
 app.post("/events", async (req, res, next) => {
   const { title, date, hour, address, description, maxCapacity } = req.body;
-  console.log("TITULO",title);
+  console.log("TITULO", title);
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
-
     return res.status(401).json({ error: "Missing or invalid token" });
   }
 
   const token = authorizationHeader.replace("Bearer ", "");
-  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+  
   const userId = decodedToken.id;
-  console.log("USERID",userId)
+  console.log("USERID", userId);
+
   try {
     // Fetch the images associated with the user from the Images model
-    const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean();//? .exec deleted
-    //const images = await Images.find({ user: userId });
-   console.log("ARRAY BD",images.imageUrls)
-      // Extract the image URLs from the fetched images
-      const photoUrls = images.imageUrls.map((image) => image);
-    console.log("YYYYYYYYYYYY",photoUrls[0])
+    const images = await Images.findOne({ user: userId, title }).lean();
+    // const images = await Images.find({ user: userId });
+    console.log("ARRAY BD", images.imageUrls);
+    // Extract the image URLs from the fetched images
+    const photoUrls = images.imageUrls.map((image) => image);
+    console.log("YYYYYYYYYYYY", photoUrls[0]);
     const eventDoc = await Event.create({
       owner: userId,
       title,
@@ -219,18 +224,22 @@ app.post("/events", async (req, res, next) => {
     });
     res.json(eventDoc);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// The following code was outside the app.post() callback. Assuming it's supposed to be inside, I moved it.
+const token = authorizationHeader.replace("Bearer ", "");
+let decodedToken;
+try {
+  decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+} catch (error) {
+  return res.status(401).json({ error: "Invalid token" });
+}
+const userId = decodedToken.id;
+res.json(await Event.find({ owner: userId }));
 
-    return res.status(401).json({ error: "Missing or invalid token" });
-
-
-  const token = authorizationHeader.replace("Bearer ", "");
-  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-  const userId = decodedToken.id;
-  res.json( await Event.find({owner:userId}));
 
 
 //TODO event/:id
