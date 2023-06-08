@@ -184,8 +184,8 @@ app.post('/api/upload', async (req, res, next) => {
 //TODO PILLAR DATA DEL CREATE EVENT
 
 app.post("/events", async (req, res, next) => {
-  const { title, date, hour, address, description, maxCapacity } = req.body;
-  console.log("TITULO",title);
+  const { title, date, hour, address, description, maxCapacity, price } = req.body;
+  //console.log("TITULO",title);
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
 
@@ -195,12 +195,12 @@ app.post("/events", async (req, res, next) => {
   const token = authorizationHeader.replace("Bearer ", "");
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
   const userId = decodedToken.id;
-  console.log("USERID",userId)
+  //console.log("USERID",userId)
   try {
     // Fetch the images associated with the user from the Images model
     const images = await Images.findOne({ $and: [{ user: userId }, { title: title }] }).lean().exec();
     //const images = await Images.find({ user: userId });
-   console.log("ARRAY BD",images.imageUrls)
+   //console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
       const photoUrls = images.imageUrls.map((image) => image);
     console.log("YYYYYYYYYYYY",photoUrls[0])
@@ -213,6 +213,7 @@ app.post("/events", async (req, res, next) => {
       description,
       maxCapacity,
       photos: photoUrls,
+      price
     });
     res.json(eventDoc);
   } catch (error) {
@@ -265,7 +266,7 @@ app.get("/admin/event/:id", async (req, res) => {
 //*update events (edit)
 
 app.put("/event/:id", async (req, res) => {
-  const { id, title, date, hour, address, description, maxCapacity } = req.body;
+  const { id, title, date, hour, address, description, maxCapacity, price } = req.body;
   //console.log("EVENT",id)
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
@@ -277,8 +278,8 @@ app.put("/event/:id", async (req, res) => {
 
 
   const eventDoc = await Event.findById(id);
-  console.log("USERID", userId)
-  console.log("OWNER",eventDoc.owner.toString())
+  //console.log("USERID", userId)
+  //console.log("OWNER",eventDoc.owner.toString())
   if(userId === eventDoc.owner.toString()) {
     eventDoc.set({
       title,
@@ -287,6 +288,7 @@ app.put("/event/:id", async (req, res) => {
       address,
       description,
       maxCapacity,
+      price
     })
     eventDoc.save();
     res.json(eventDoc)
