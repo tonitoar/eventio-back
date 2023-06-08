@@ -220,7 +220,7 @@ app.post("/events", async (req, res, next) => {
   }
 });
 
-app.get("/events", async (req, res) => {
+app.get("/admin/events", async (req, res) => {
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
 
@@ -255,7 +255,7 @@ app.put("/events/:id", async (req, res) => {
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
   const userId = decodedToken.id;
 
-  if(err) throw err; 
+
   const eventDoc = await Event.findById(id);
   console.log("USERID", userId)
   console.log("OWNER",eventDoc.owner.toString())
@@ -279,6 +279,16 @@ app.put("/events/:id", async (req, res) => {
 
 
 
+
+app.get("/events", async (req, res, next) => {
+  try {
+    // Fetch events associated with the user from the Events model
+    const events = await Event.find({});//? We delete the need for authorization since route is public, so we delete it.
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 
 
