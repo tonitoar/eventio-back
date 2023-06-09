@@ -113,7 +113,7 @@ app.post("/login", async (req, res, next) => {
 app.get("/profile", (req, res, next) => {
   const token = req.headers.authorization;
   if (token) {
-    jwt.verify(
+    jwt.verify( 
       token.replace("Bearer ", ""),
       process.env.TOKEN_SECRET,
       { algorithm: "HS256", expiresIn: "24h" },
