@@ -11,6 +11,7 @@ const {cloudinary} = require("./config/cloudinary.config");
 const User = require("./models/User.model.js");
 const Event = require("./models/Event.model.js");
 const Images = require('./models/Images.model.js');
+const EventUser = require("./models/Event.User.Quant.js")
 
 require("dotenv").config();
 app.use(cookieParser());
@@ -203,7 +204,7 @@ app.post("/events", async (req, res, next) => {
    //console.log("ARRAY BD",images.imageUrls)
       // Extract the image URLs from the fetched images
       const photoUrls = images.imageUrls.map((image) => image);
-    console.log("YYYYYYYYYYYY",photoUrls[0])
+    //console.log("YYYYYYYYYYYY",photoUrls[0])
     const eventDoc = await Event.create({
       owner: userId,
       title,
@@ -319,6 +320,47 @@ app.get("/event/:id", async (req, res) => {
 })
 
 
+//!PURCHASE
+
+app.post("/event/:id/purchase", async (req, res, next) => {
+  const eventId = req.params.id;
+  const authorizationHeader = req.headers.authorization;
+  const { counter } = req.body;
+  
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+  
+  try {
+    const token = authorizationHeader.replace("Bearer ", "");
+    const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userId = decodedToken.id;
+
+    const eventUserDoc = await EventUser.create({
+      idUser: userId,
+      idEvent: eventId,
+      quantity: counter
+    });
+
+    res.json(eventUserDoc);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.get("/account/event", async (req, res) => {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+  res.json( await EventUser.find({idUser:userId}));
+})
 
 
 
