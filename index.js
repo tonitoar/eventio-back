@@ -58,6 +58,11 @@ app.get("/test", (req, res, next) => {
 
 app.post("/register", async (req, res, next) => {
   const { username, email, password, code } = req.body;
+  let isAdmin = false;
+
+  if (code === "3434") {
+    isAdmin = true;
+  }
 
   try {
     const userDoc = await User.create({
@@ -65,6 +70,7 @@ app.post("/register", async (req, res, next) => {
       email,
       password: bcrypt.hashSync(password, bcryptSalt),
       code,
+      isAdmin
     });
     res.json(userDoc);
   } catch (e) {
@@ -119,8 +125,8 @@ app.get("/profile", (req, res, next) => {
       { algorithm: "HS256", expiresIn: "24h" },
       async (error, userData) => {
         if (error) throw error;
-      const {username, email, _id} =  await User.findById(userData.id)
-        res.json({username, email, _id});
+      const {username, email, _id, isAdmin} =  await User.findById(userData.id)
+        res.json({username, email, _id, isAdmin});
       }
     );
   } else {
@@ -349,7 +355,7 @@ app.post("/event/:id/purchase", async (req, res, next) => {
 });
 
 
-app.get("/account/event", async (req, res) => {
+/* app.get("/account/event", async (req, res) => {
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader) {
 
@@ -359,8 +365,46 @@ app.get("/account/event", async (req, res) => {
   const token = authorizationHeader.replace("Bearer ", "");
   const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
   const userId = decodedToken.id;
-  res.json( await EventUser.find({idUser:userId}));
-})
+  console.log( await EventUser.find({idUser:userId}));
+}) */
+
+app.get("/account/event", async (req, res) => {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authorizationHeader.replace("Bearer ", "");
+  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
+  const userId = decodedToken.id;
+
+  try {
+    const eventUsers = await EventUser.find({ idUser: userId });
+
+    // Retrieve the event IDs from the eventUser documents
+    const eventIds = eventUsers.map((eventUser) => eventUser.idEvent);
+
+    // Retrieve the events by populating the event details
+    const events = await Event.find({ _id: { $in: eventIds } });
+
+    // Create an array of eventDetails objects with quantity and event name
+    const eventDetails = eventUsers.map((eventUser) => {
+      const event = events.find((event) => event._id.equals(eventUser.idEvent));
+      return {
+        quantity: eventUser.quantity,
+        title: event ? event.title : null,
+      };
+    });
+
+    console.log(eventDetails);
+
+    res.status(200).json(eventDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 
 
@@ -417,7 +461,7 @@ const fileUploader = require("../config/cloudinary.config");
 
 
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`)
 });
