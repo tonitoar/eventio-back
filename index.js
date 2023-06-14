@@ -355,18 +355,6 @@ app.post("/event/:id/purchase", async (req, res, next) => {
 });
 
 
-/* app.get("/account/event", async (req, res) => {
-  const authorizationHeader = req.headers.authorization;
-  if (!authorizationHeader) {
-
-    return res.status(401).json({ error: "Missing or invalid token" });
-  }
-
-  const token = authorizationHeader.replace("Bearer ", "");
-  const decodedToken = jwt.verify(token, process.env.TOKEN_SECRET);
-  const userId = decodedToken.id;
-  console.log( await EventUser.find({idUser:userId}));
-}) */
 
 app.get("/account/event", async (req, res) => {
   const authorizationHeader = req.headers.authorization;
@@ -393,10 +381,12 @@ app.get("/account/event", async (req, res) => {
       return {
         quantity: eventUser.quantity,
         title: event ? event.title : null,
+        photo: event ? event.photos : null,
+        event: eventUser.idEvent
       };
     });
 
-    console.log(eventDetails);
+    console.log("XXXXXXXXXXXXXX",eventDetails);
 
     res.status(200).json(eventDetails);
   } catch (error) {
@@ -425,37 +415,6 @@ app.get("/account/event", async (req, res) => {
 
 
 
-//TODO llista per public_id que estan dintre de la carpeta
-
-app.get("/api/images", async (req, res, next) => {
-  const {resources} = await cloudinary.search.expression("folder:event.io").sort_by("public_id", "desc").max_results(30).execute();
-  //*console.log(resources); 
-  const publicIds = resources.map(file => file.public_id);
-  res.send(publicIds); 
-  
-})
-
-
-/* 
-// POST "/api/upload" => Route that receives the image, sends it to Cloudinary via the fileUploader and returns the image URL
-router.post("/upload", fileUploader.single("imageUrl"), (req, res, next) => {
-  // console.log("file is: ", req.file)
- 
-  if (!req.file) {
-    next(new Error("No file uploaded!"));
-    return;
-  }
-
-
-    // Get the URL of the uploaded file and send it as a response.
-  // 'fileUrl' can be any name, just make sure you remember to use the same when accessing it on the frontend
-
-  res.json({ fileUrl: req.file.path });
-});
-
-const fileUploader = require("../config/cloudinary.config");
-
-*/
 
 
 
